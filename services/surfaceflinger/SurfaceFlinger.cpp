@@ -3653,6 +3653,11 @@ status_t SurfaceFlinger::createLayer(
                     uniqueName, w, h, flags,
                     handle, &layer);
             break;
+        case ISurfaceComposerClient::eFXSurfaceContainer:
+            result = createContainerLayer(client,
+                    uniqueName, w, h, flags,
+                    handle, &layer);
+            break;
         default:
             result = BAD_VALUE;
             break;
@@ -3743,6 +3748,16 @@ status_t SurfaceFlinger::createColorLayer(const sp<Client>& client,
     *handle = (*outLayer)->getHandle();
     return NO_ERROR;
 }
+
+status_t SurfaceFlinger::createContainerLayer(const sp<Client>& client,
+        const String8& name, uint32_t w, uint32_t h, uint32_t flags,
+        sp<IBinder>* handle, sp<Layer>* outLayer)
+{
+    *outLayer = new ContainerLayer(this, client, name, w, h, flags);
+    *handle = (*outLayer)->getHandle();
+    return NO_ERROR;
+}
+
 
 status_t SurfaceFlinger::onLayerRemoved(const sp<Client>& client, const sp<IBinder>& handle)
 {
@@ -5078,7 +5093,8 @@ void SurfaceFlinger::renderScreenImplLocked(const RenderArea& renderArea,
     if (sourceCrop.width() == 0 || sourceCrop.height() == 0 || !sourceCrop.isValid()) {
         sourceCrop.setLeftTop(Point(0, 0));
         sourceCrop.setRightBottom(Point(raWidth, raHeight));
-    } else if (mPrimaryDisplayOrientation != DisplayState::eOrientationDefault) {
+    } else if (mPrimaryDisplayOrientation != DisplayState::eOrientationDefault &&
+               renderArea.getCaptureFill() != RenderArea::CaptureFill::CLEAR) {
         Transform tr;
         uint32_t flags = 0x00;
         switch (mPrimaryDisplayOrientation) {
@@ -5118,7 +5134,8 @@ void SurfaceFlinger::renderScreenImplLocked(const RenderArea& renderArea,
     engine.checkErrors();
 
     Transform::orientation_flags rotation = renderArea.getRotationFlags();
-    if (mPrimaryDisplayOrientation != DisplayState::eOrientationDefault) {
+    if (mPrimaryDisplayOrientation != DisplayState::eOrientationDefault &&
+        renderArea.getCaptureFill() != RenderArea::CaptureFill::CLEAR) {
         // convert hw orientation into flag presentation
         // here inverse transform needed
         uint8_t hw_rot_90  = 0x00;
