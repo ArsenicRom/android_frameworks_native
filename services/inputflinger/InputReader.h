@@ -212,8 +212,8 @@ struct InputReaderConfiguration {
             pointerGestureMovementSpeedRatio(0.8f),
             pointerGestureZoomSpeedRatio(0.3f),
             showTouches(false),
-            swapKeys(false),
-            volumeKeysRotationMode(0) { }
+            volumeKeysRotationMode(0),
+	    swapKeys(false) { }
 
     bool getDisplayViewport(ViewportType viewportType, const String8* displayId,
             DisplayViewport* outViewport) const;
